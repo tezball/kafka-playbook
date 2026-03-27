@@ -25,7 +25,7 @@ byte[] ──────► Kafka Broker ──────► Java Object
 | **Protobuf** | Compact binary, strong typing, language-neutral | Requires .proto files, Schema Registry recommended |
 | **String** | Simplest possible | No structure, manual parsing |
 
-JSON is the best choice for learning and prototyping. Avro and Protobuf are preferred in production for performance and schema enforcement (covered in Lesson 12).
+JSON is the best choice for learning and prototyping. Avro and Protobuf are preferred in production for performance and schema enforcement (covered in [Lesson 12](../12-schema-evolution/LESSON.md)).
 
 ## Spring Kafka JSON Configuration
 
@@ -99,10 +99,10 @@ This is why production systems use a Schema Registry with Avro or Protobuf — i
 
 ## Hands-On
 
-- **[[../01-simple-pub-sub/LESSON|Lesson 01]]** uses JSON serialization with type mapping — browse messages in AKHQ to see JSON payloads and `__TypeId__` headers
+- **[Lesson 01](../01-simple-pub-sub/LESSON.md)** uses JSON serialization with type mapping — browse messages in AKHQ to see JSON payloads and `__TypeId__` headers
 - The producer and consumer each define their own `OrderEvent` record and agree on a type alias — this works for self-contained apps, but in multi-team systems a Schema Registry or shared library is essential
 
 ## Further Reading
 
-- Schema evolution and the Schema Registry are covered in Lesson 12
-- Message keys and their serialization are covered in [[05-message-keys|Message Keys]]
+- Schema evolution and the Schema Registry are covered in [Lesson 12](../12-schema-evolution/LESSON.md) and [Schema Evolution](08-schema-evolution.md)
+- Message keys and their serialization are covered in [Message Keys](05-message-keys.md)

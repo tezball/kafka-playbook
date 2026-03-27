@@ -63,7 +63,7 @@ The interaction between offset commits and message processing determines your de
 |----------|-----------|------|
 | Commit before processing | At-most-once | Messages can be lost |
 | Commit after processing | At-least-once | Messages can be duplicated |
-| Transactional (Lesson 09) | Exactly-once | Highest overhead |
+| Transactional ([Lesson 09](../09-exactly-once/LESSON.md)) | Exactly-once | Highest overhead |
 
 Choose based on your use case: at-least-once is appropriate for notifications (a duplicate is better than a lost message), while financial transactions require exactly-once.
 
@@ -99,11 +99,11 @@ This is powerful for:
 
 ## Hands-On
 
-- **[[../01-simple-pub-sub/LESSON|Lesson 01]]** uses auto-commit with `auto-offset-reset: earliest` — on first startup the consumer reads from the beginning; on restarts it resumes from the last committed offset
+- **[Lesson 01](../01-simple-pub-sub/LESSON.md)** uses auto-commit with `auto-offset-reset: earliest` — on first startup the consumer reads from the beginning; on restarts it resumes from the last committed offset
 - **Experiment:** Stop a consumer, let messages accumulate, then restart it. Watch lag spike in AKHQ and then drop as it catches up
-- Lesson 09 (Exactly-Once Processing) demonstrates transactional offset commits
+- [Lesson 09](../09-exactly-once/LESSON.md) (Exactly-Once Processing) demonstrates transactional offset commits
 
 ## Further Reading
 
-- How consumer groups coordinate offset tracking is covered in [[04-consumer-groups|Consumer Groups]]
-- Exactly-once delivery and transactional offsets are covered in Lesson 09
+- How consumer groups coordinate offset tracking is covered in [Consumer Groups](04-consumer-groups.md)
+- Exactly-once delivery and transactional offsets are covered in [Lesson 09](../09-exactly-once/LESSON.md) and [Transactions & EOS](09-transactions.md)

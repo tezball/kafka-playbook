@@ -74,11 +74,11 @@ Kafka brokers manage consumer groups through a **group coordinator**:
 
 ## Hands-On
 
-- **[[../01-simple-pub-sub/LESSON|Lesson 01]]** uses a single consumer group (`email-notification-group`) — view its offset progress and lag in AKHQ's Consumer Groups page
+- **[Lesson 01](../01-simple-pub-sub/LESSON.md)** uses a single consumer group (`email-notification-group`) — view its offset progress and lag in AKHQ's Consumer Groups page
 - **Experiment:** stop a consumer, let messages accumulate, then restart it. Watch lag spike and recover to 0 — this is the group's offset tracking in action
 - **Lesson 02 (Fan-Out)** demonstrates multiple consumer groups on the same topic — each processes independently
 
 ## Further Reading
 
-- How offsets are tracked per group is covered in [[07-offsets|Offsets]]
-- How partition keys affect which partition receives a message is covered in [[05-message-keys|Message Keys]]
+- How offsets are tracked per group is covered in [Offsets](07-offsets.md)
+- How partition keys affect which partition receives a message is covered in [Message Keys](05-message-keys.md)

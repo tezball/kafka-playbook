@@ -90,10 +90,10 @@ The key (`orderId`) determines the partition. All events for the same order are 
 
 ## Hands-On
 
-- **[[../01-simple-pub-sub/LESSON|Lesson 01]]** uses `orderId` as the message key — click individual messages in AKHQ to see the key, partition, and offset for each record
+- **[Lesson 01](../01-simple-pub-sub/LESSON.md)** uses `orderId` as the message key — click individual messages in AKHQ to see the key, partition, and offset for each record
 - **Lesson 03 (Partitioned Processing)** explores key-based routing in depth with region-based partitioning
 
 ## Further Reading
 
-- How partitions relate to consumer parallelism is covered in [[04-consumer-groups|Consumer Groups]]
-- How the value payload is serialized is covered in [[06-json-serialization|JSON Serialization]]
+- How partitions relate to consumer parallelism is covered in [Consumer Groups](04-consumer-groups.md)
+- How the value payload is serialized is covered in [JSON Serialization](06-json-serialization.md)

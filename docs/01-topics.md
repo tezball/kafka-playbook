@@ -68,11 +68,12 @@ TopicBuilder.name("order-events")
 
 ## Hands-On
 
-- **[[../01-simple-pub-sub/LESSON|Lesson 01]]** creates an `order-events` topic with 3 partitions — inspect it in AKHQ to see partition layout, message counts, and topic configuration
+- **[Lesson 01](../01-simple-pub-sub/LESSON.md)** creates an `order-events` topic with 3 partitions — inspect it in AKHQ to see partition layout, message counts, and topic configuration
 - Use `kafka-topics.sh --describe` inside the Kafka container to view topic metadata from the CLI
 
 ## Further Reading
 
 - Topic configuration options number in the dozens — explore them in AKHQ under a topic's "Config" tab
-- The relationship between partition count and consumer parallelism is covered in [[04-consumer-groups|Consumer Groups]]
-- How message keys determine partition assignment is covered in [[05-message-keys|Message Keys]]
+- The relationship between partition count and consumer parallelism is covered in [Consumer Groups](04-consumer-groups.md)
+- How message keys determine partition assignment is covered in [Message Keys](05-message-keys.md)
+- How topics support event sourcing patterns is covered in [Event Sourcing & Log Compaction](13-event-sourcing.md)

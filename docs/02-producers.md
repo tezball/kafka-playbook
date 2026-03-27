@@ -92,11 +92,11 @@ kafkaTemplate.send("order-events", event.orderId(), event)
 
 ## Hands-On
 
-- **[[../01-simple-pub-sub/LESSON|Lesson 01]]** implements an async producer with callbacks — watch the producer logs to see partition and offset confirmations
+- **[Lesson 01](../01-simple-pub-sub/LESSON.md)** implements an async producer with callbacks — watch the producer logs to see partition and offset confirmations
 - Try sending messages via the REST API and observe which partition each message lands on in AKHQ
 
 ## Further Reading
 
-- How the key determines partition assignment is covered in [[05-message-keys|Message Keys]]
-- How the value is serialized to JSON is covered in [[06-json-serialization|JSON Serialization]]
-- Exactly-once semantics (transactions) are covered in Lesson 09
+- How the key determines partition assignment is covered in [Message Keys](05-message-keys.md)
+- How the value is serialized to JSON is covered in [JSON Serialization](06-json-serialization.md)
+- Exactly-once semantics (transactions) are covered in [Lesson 09](../09-exactly-once/LESSON.md) and [Transactions & EOS](09-transactions.md)

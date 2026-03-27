@@ -99,10 +99,11 @@ public void handle(OrderEvent event) {
 
 ## Hands-On
 
-- **[[../01-simple-pub-sub/LESSON|Lesson 01]]** implements a consumer that logs email notifications — try stopping and restarting it to see offset-based resumption in action
+- **[Lesson 01](../01-simple-pub-sub/LESSON.md)** implements a consumer that logs email notifications — try stopping and restarting it to see offset-based resumption in action
 - Watch consumer lag in AKHQ while the consumer is stopped, then observe it catch up after restart
 
 ## Further Reading
 
-- How consumers share work within a group is covered in [[04-consumer-groups|Consumer Groups]]
-- How offsets are tracked is covered in [[07-offsets|Offsets]]
+- How consumers share work within a group is covered in [Consumer Groups](04-consumer-groups.md)
+- How offsets are tracked is covered in [Offsets](07-offsets.md)
+- How to handle poison-pill messages is covered in [Dead Letter Queues](10-dead-letter-queues.md)
