@@ -4,6 +4,7 @@ import com.playbook.aggregator.model.CategoryCount;
 import com.playbook.aggregator.model.DashboardOrder;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.utils.Bytes;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.*;
 import org.apache.kafka.streams.state.WindowStore;
@@ -32,7 +33,7 @@ public class StreamsTopologyConfig {
         // Serde for DashboardOrder values
         var orderSerde = new JsonSerde<>(DashboardOrder.class);
         orderSerde.configure(
-                java.util.Map.of("spring.json.trusted.packages", "com.playbook.*"),
+                java.util.Map.of("spring.json.trusted.packages", "*", "spring.json.use.type.headers", "false"),
                 false
         );
 

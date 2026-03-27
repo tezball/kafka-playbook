@@ -22,20 +22,19 @@ public class KafkaStreamsConfig {
 
     @Bean
     public KStream<String, EnrichedClick> enrichmentStream(StreamsBuilder builder) {
+        var commonProps = java.util.Map.<String, Object>of(
+                "spring.json.trusted.packages", "*",
+                "spring.json.use.type.headers", "false"
+        );
+
         JsonSerde<ClickEvent> clickSerde = new JsonSerde<>(ClickEvent.class);
-        clickSerde.configure(java.util.Map.of(
-                "spring.json.trusted.packages", "com.playbook.*"
-        ), false);
+        clickSerde.configure(commonProps, false);
 
         JsonSerde<UserProfile> profileSerde = new JsonSerde<>(UserProfile.class);
-        profileSerde.configure(java.util.Map.of(
-                "spring.json.trusted.packages", "com.playbook.*"
-        ), false);
+        profileSerde.configure(commonProps, false);
 
         JsonSerde<EnrichedClick> enrichedSerde = new JsonSerde<>(EnrichedClick.class);
-        enrichedSerde.configure(java.util.Map.of(
-                "spring.json.trusted.packages", "com.playbook.*"
-        ), false);
+        enrichedSerde.configure(commonProps, false);
 
         KStream<String, ClickEvent> clicks = builder.stream("clicks",
                 Consumed.with(Serdes.String(), clickSerde));

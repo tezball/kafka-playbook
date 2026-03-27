@@ -9,12 +9,6 @@ spring:
     consumer:
       group-id: versioned-consumer-group
       auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted-packages: "com.playbook.*"
-        spring.json.type.mapping: orderEvent:com.playbook.consumer.model.OrderEventFull
-        spring.json.use.type.headers: false
 
 management:
   endpoints:

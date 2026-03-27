@@ -31,7 +31,8 @@ public class KafkaConsumerConfig {
         JsonDeserializer<OrderEventFull> deserializer = new JsonDeserializer<>(OrderEventFull.class, kafkaObjectMapper);
         deserializer.setRemoveTypeHeaders(true);
         deserializer.setUseTypeMapperForKey(false);
-        deserializer.addTrustedPackages("com.playbook.*");
+        deserializer.setUseTypeHeaders(false);
+        deserializer.addTrustedPackages("*");
 
         return new DefaultKafkaConsumerFactory<>(
                 kafkaProperties.buildConsumerProperties(null),
