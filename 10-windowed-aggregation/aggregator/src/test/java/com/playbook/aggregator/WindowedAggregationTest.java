@@ -6,23 +6,19 @@ import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
-import org.springframework.kafka.test.utils.KafkaTestUtils;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.kafka.KafkaContainer;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 
 import java.math.BigDecimal;
 import java.time.Duration;
@@ -38,27 +34,25 @@ import static org.awaitility.Awaitility.await;
 /**
  * End-to-end BDD tests for the Kafka Streams windowed aggregation topology.
  *
- * Uses Testcontainers to spin up a real Kafka broker, produces DashboardOrder
- * events to the input topic, and verifies CategoryCount results on the output topic.
+ * Uses an embedded Kafka broker, produces DashboardOrder events to the input
+ * topic, and verifies CategoryCount results on the output topic.
  */
 @SpringBootTest(
         classes = AggregatorApplication.class,
-        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = {
+                "spring.kafka.streams.properties.num.stream.threads=1"
+        }
 )
-@Testcontainers
+@EmbeddedKafka(
+        partitions = 3,
+        topics = {"dashboard-orders", "category-counts", "test-dashboard-aggregator-KSTREAM-KEY-SELECT-0000000001-repartition"},
+        brokerProperties = {"listeners=PLAINTEXT://localhost:0", "port=0"}
+)
 class WindowedAggregationTest {
 
-    @Container
-    static final KafkaContainer kafka = new KafkaContainer("apache/kafka:3.9.0");
-
-    @DynamicPropertySource
-    static void kafkaProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
-        registry.add("spring.kafka.streams.properties.num.stream.threads", () -> "1");
-        // Use a unique application-id per test run to avoid state store conflicts
-        registry.add("spring.kafka.streams.application-id",
-                () -> "test-aggregator-" + System.currentTimeMillis());
-    }
+    @Value("${spring.kafka.bootstrap-servers}")
+    private String bootstrapServers;
 
     @Test
     @DisplayName("Given orders arrive within the same 1-minute window, " +
@@ -126,7 +120,12 @@ class WindowedAggregationTest {
 
         KafkaTemplate<String, DashboardOrder> producer = createProducer();
         for (DashboardOrder order : orders) {
-            producer.send("dashboard-orders", order.orderId(), order);
+            // Use explicit Kafka record timestamps so Kafka Streams windows
+            // align with the event's logical timestamp, not wall-clock time.
+            var record = new ProducerRecord<>(
+                    "dashboard-orders", null, order.timestamp().toEpochMilli(),
+                    order.orderId(), order);
+            producer.send(record);
         }
         producer.flush();
 
@@ -155,7 +154,7 @@ class WindowedAggregationTest {
 
     private KafkaTemplate<String, DashboardOrder> createProducer() {
         Map<String, Object> props = new HashMap<>();
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
 
@@ -165,7 +164,7 @@ class WindowedAggregationTest {
 
     private Consumer<String, CategoryCount> createConsumer() {
         Map<String, Object> props = new HashMap<>();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "test-consumer-" + System.currentTimeMillis());
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);

@@ -16,15 +16,11 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.kafka.KafkaContainer;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 
 import java.math.BigDecimal;
 import java.time.Duration;
@@ -39,25 +35,22 @@ import static org.awaitility.Awaitility.await;
 /**
  * End-to-end BDD tests for the transactional outbox pattern.
  *
- * Uses Testcontainers to spin up real Kafka and PostgreSQL instances.
+ * Uses an embedded Kafka broker and H2 in-memory database.
  * Verifies the full flow: order creation -> outbox write -> poll -> Kafka publish.
  */
 @SpringBootTest(
         classes = OrderServiceApplication.class,
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
-@Testcontainers
+@EmbeddedKafka(
+        partitions = 3,
+        topics = {"order-events"},
+        brokerProperties = {"listeners=PLAINTEXT://localhost:0", "port=0"}
+)
 class OutboxFlowTest {
 
-    @Container
-    static final KafkaContainer kafka = new KafkaContainer("apache/kafka:3.9.0");
-
-    @Container
-    static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine")
-            .withDatabaseName("orderdb")
-            .withUsername("postgres")
-            .withPassword("postgres")
-            .withInitScript("init-db.sql");
+    @Value("${spring.kafka.bootstrap-servers}")
+    private String bootstrapServers;
 
     @Autowired
     private OrderService orderService;
@@ -70,14 +63,6 @@ class OutboxFlowTest {
 
     @Autowired
     private OutboxPoller outboxPoller;
-
-    @DynamicPropertySource
-    static void containerProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
-        registry.add("spring.datasource.url", postgres::getJdbcUrl);
-        registry.add("spring.datasource.username", postgres::getUsername);
-        registry.add("spring.datasource.password", postgres::getPassword);
-    }
 
     @Test
     @DisplayName("Given an order is created via the order service, " +
@@ -191,7 +176,7 @@ class OutboxFlowTest {
 
     private Consumer<String, OrderCreatedEvent> createConsumer() {
         Map<String, Object> props = new HashMap<>();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "test-consumer-" + System.currentTimeMillis());
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);

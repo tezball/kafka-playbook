@@ -1,9 +1,14 @@
 spring:
   application:
     name: checkout-producer-test
-  # Disable scheduled tasks during tests so the SampleDataGenerator
-  # does not produce unexpected messages.
+  kafka:
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.type.mapping: >-
+          checkoutRequested:com.playbook.checkout.model.CheckoutRequest
   task:
     scheduling:
       pool:
-        size: 0
+        size: 1

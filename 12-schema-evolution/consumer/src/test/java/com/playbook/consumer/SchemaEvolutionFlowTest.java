@@ -7,17 +7,13 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.serializer.JsonSerializer;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.kafka.KafkaContainer;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 
 import java.math.BigDecimal;
 import java.time.Duration;
@@ -34,27 +30,26 @@ import static org.mockito.Mockito.verify;
 /**
  * End-to-end BDD tests for the schema evolution consumer.
  *
- * Uses Testcontainers to spin up a real Kafka broker, produces v1 and v2
- * events as raw JSON maps to the versioned-events topic, and verifies
- * the consumer deserializes both correctly using its tolerant reader model.
+ * Uses an embedded Kafka broker, produces v1 and v2 events as raw JSON maps
+ * to the versioned-events topic, and verifies the consumer deserializes both
+ * correctly using its tolerant reader model.
  */
 @SpringBootTest(
         classes = ConsumerApplication.class,
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
-@Testcontainers
+@EmbeddedKafka(
+        partitions = 3,
+        topics = {"versioned-events"},
+        brokerProperties = {"listeners=PLAINTEXT://localhost:0", "port=0"}
+)
 class SchemaEvolutionFlowTest {
 
-    @Container
-    static final KafkaContainer kafka = new KafkaContainer("apache/kafka:3.9.0");
+    @Value("${spring.kafka.bootstrap-servers}")
+    private String bootstrapServers;
 
     @SpyBean
     private VersionedEventConsumer versionedEventConsumer;
-
-    @DynamicPropertySource
-    static void kafkaProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
-    }
 
     @Test
     @DisplayName("Given a v1 event (3 fields) is published, " +
@@ -208,7 +203,7 @@ class SchemaEvolutionFlowTest {
      */
     private KafkaTemplate<String, Map<String, Object>> createMapProducer() {
         Map<String, Object> props = new HashMap<>();
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
         props.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, false);

@@ -10,22 +10,16 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.kafka.common.header.internals.RecordHeader;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.support.serializer.JsonSerializer;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.KafkaContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -44,7 +38,16 @@ import static org.awaitility.Awaitility.await;
  * event to {@code account-credits} within a single Kafka transaction.</p>
  */
 @SpringBootTest
-@Testcontainers
+@EmbeddedKafka(
+        partitions = 3,
+        topics = {"transfer-requests", "account-debits", "account-credits"},
+        brokerProperties = {
+                "listeners=PLAINTEXT://localhost:0",
+                "port=0",
+                "transaction.state.log.replication.factor=1",
+                "transaction.state.log.min.isr=1"
+        }
+)
 class ExactlyOnceFlowTest {
 
     private static final String TRANSFER_REQUESTS_TOPIC = "transfer-requests";
@@ -54,15 +57,8 @@ class ExactlyOnceFlowTest {
     private static final ObjectMapper MAPPER = new ObjectMapper()
             .registerModule(new JavaTimeModule());
 
-    @Container
-    static final KafkaContainer kafka = new KafkaContainer(
-            DockerImageName.parse("confluentinc/cp-kafka:7.6.0")
-    );
-
-    @DynamicPropertySource
-    static void kafkaProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
-    }
+    @Value("${spring.kafka.bootstrap-servers}")
+    private String bootstrapServers;
 
     // ---------------------------------------------------------------
     //  Helpers
@@ -74,22 +70,17 @@ class ExactlyOnceFlowTest {
      * the app's deserializer can resolve the concrete type.
      */
     private void publishTransferRequest(TransferRequest request) {
-        try (var producer = new KafkaProducer<>(Map.of(
-                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers(),
+        try (var producer = new KafkaProducer<String, TransferRequest>(Map.<String, Object>of(
+                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers,
                 ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName(),
-                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class.getName()
+                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class.getName(),
+                JsonSerializer.TYPE_MAPPINGS, "transferRequest:com.playbook.processor.model.TransferRequest"
         ))) {
             var record = new ProducerRecord<>(
                     TRANSFER_REQUESTS_TOPIC,
                     request.fromAccount(),
                     request
             );
-            // Add the Spring JSON type header so the consumer's JsonDeserializer
-            // can map the payload to TransferRequest
-            record.headers().add(new RecordHeader(
-                    "__TypeId__",
-                    "transferRequest".getBytes(StandardCharsets.UTF_8)
-            ));
             producer.send(record).get();
         } catch (Exception e) {
             throw new RuntimeException("Failed to publish transfer request", e);
@@ -103,8 +94,8 @@ class ExactlyOnceFlowTest {
     private KafkaConsumer<String, String> createTestConsumer(
             String topic, boolean readCommitted) {
 
-        var props = new java.util.HashMap<>(Map.of(
-                ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers(),
+        var props = new java.util.HashMap<String, Object>(Map.<String, Object>of(
+                ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers,
                 ConsumerConfig.GROUP_ID_CONFIG, "eos-test-" + topic + "-" + System.nanoTime(),
                 ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest",
                 ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName(),

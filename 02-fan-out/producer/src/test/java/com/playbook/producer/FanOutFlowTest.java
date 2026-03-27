@@ -11,14 +11,10 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.KafkaContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -30,18 +26,15 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
-@Testcontainers
+@EmbeddedKafka(
+        partitions = 3,
+        topics = {"user-signups"},
+        brokerProperties = {"listeners=PLAINTEXT://localhost:0", "port=0"}
+)
 class FanOutFlowTest {
 
-    @Container
-    static KafkaContainer kafka = new KafkaContainer(
-            DockerImageName.parse("confluentinc/cp-kafka:7.6.1")
-    );
-
-    @DynamicPropertySource
-    static void kafkaProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
-    }
+    @Value("${spring.kafka.bootstrap-servers}")
+    private String bootstrapServers;
 
     @Autowired
     private SignupProducerService signupProducerService;
@@ -54,7 +47,7 @@ class FanOutFlowTest {
 
     private KafkaConsumer<String, String> createConsumerForGroup(String groupId) {
         Map<String, Object> props = new HashMap<>();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);

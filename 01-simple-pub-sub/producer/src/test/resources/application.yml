@@ -2,7 +2,7 @@ spring:
   task:
     scheduling:
       pool:
-        size: 0
+        size: 1
   kafka:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer

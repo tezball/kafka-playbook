@@ -3,6 +3,24 @@ spring:
     name: transfer-processor-test
   kafka:
     producer:
-      # Use a unique transaction-id-prefix per test run to avoid
-      # conflicts with stale transactional state from prior runs.
       transaction-id-prefix: txn-test-
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        enable.idempotence: true
+        spring.json.type.mapping: >-
+          accountDebit:com.playbook.processor.model.AccountDebit,
+          accountCredit:com.playbook.processor.model.AccountCredit
+    consumer:
+      group-id: transfer-processor-group
+      auto-offset-reset: earliest
+      isolation-level: read_committed
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        enable.auto.commit: false
+        spring.json.trusted-packages: "com.playbook.*"
+        spring.json.type.mapping: >-
+          transferRequest:com.playbook.processor.model.TransferRequest,
+          accountDebit:com.playbook.processor.model.AccountDebit,
+          accountCredit:com.playbook.processor.model.AccountCredit

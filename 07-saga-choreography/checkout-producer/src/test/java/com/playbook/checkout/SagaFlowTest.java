@@ -12,17 +12,14 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.KafkaContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -34,7 +31,7 @@ import static org.awaitility.Awaitility.await;
  *
  * <p>This test verifies that the checkout-producer correctly publishes
  * {@link CheckoutRequest} events to the {@code checkout-requested} topic.
- * A real Kafka broker is started via Testcontainers.</p>
+ * An in-process Kafka broker is started via {@code @EmbeddedKafka}.</p>
  *
  * <p><strong>Note on full saga testing:</strong> The complete saga flow spans
  * four independent Spring Boot services (checkout, inventory, payment, shipping).
@@ -43,7 +40,11 @@ import static org.awaitility.Awaitility.await;
  * better suited for a Docker Compose-based integration test.</p>
  */
 @SpringBootTest
-@Testcontainers
+@EmbeddedKafka(
+        partitions = 3,
+        topics = {"checkout-requested"},
+        brokerProperties = {"listeners=PLAINTEXT://localhost:0", "port=0"}
+)
 class SagaFlowTest {
 
     private static final String CHECKOUT_REQUESTED_TOPIC = "checkout-requested";
@@ -51,15 +52,8 @@ class SagaFlowTest {
     private static final ObjectMapper MAPPER = new ObjectMapper()
             .registerModule(new JavaTimeModule());
 
-    @Container
-    static final KafkaContainer kafka = new KafkaContainer(
-            DockerImageName.parse("confluentinc/cp-kafka:7.6.0")
-    );
-
-    @DynamicPropertySource
-    static void kafkaProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
-    }
+    @Value("${spring.kafka.bootstrap-servers}")
+    private String bootstrapServers;
 
     @Autowired
     private CheckoutProducerService producerService;
@@ -73,8 +67,8 @@ class SagaFlowTest {
      * the given topic, starting from the earliest offset.
      */
     private KafkaConsumer<String, String> createTestConsumer(String topic) {
-        var consumer = new KafkaConsumer<>(Map.of(
-                ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers(),
+        var consumer = new KafkaConsumer<String, String>(Map.<String, Object>of(
+                ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers,
                 ConsumerConfig.GROUP_ID_CONFIG, "saga-test-" + topic + "-" + System.nanoTime(),
                 ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest",
                 ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName(),
@@ -144,17 +138,20 @@ class SagaFlowTest {
             // -- When --
             producerService.sendCheckout(request);
 
-            // -- Then --
+            // -- Then: accumulate records across polls until we find our target --
+            var collected = new ArrayList<org.apache.kafka.clients.consumer.ConsumerRecord<String, String>>();
             await().atMost(Duration.ofSeconds(30))
                     .pollInterval(Duration.ofMillis(500))
                     .untilAsserted(() -> {
                         ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(500));
+                        records.forEach(collected::add);
 
-                        var matchingRecord = records.records(CHECKOUT_REQUESTED_TOPIC)
-                                .iterator();
-                        assertThat(matchingRecord.hasNext()).isTrue();
+                        var match = collected.stream()
+                                .filter(r -> "ORD-TEST-002".equals(r.key()))
+                                .findFirst();
+                        assertThat(match).isPresent();
 
-                        JsonNode payload = MAPPER.readTree(matchingRecord.next().value());
+                        JsonNode payload = MAPPER.readTree(match.get().value());
                         assertThat(payload.get("orderId").asText()).isEqualTo("ORD-TEST-002");
                         assertThat(payload.get("customerId").asText()).isEqualTo("CUST-202");
                         assertThat(payload.get("productName").asText()).isEqualTo("Ergonomic Chair");
