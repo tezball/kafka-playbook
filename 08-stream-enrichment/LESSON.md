@@ -15,12 +15,12 @@ flowchart LR
 
 ## Kafka Concepts Covered
 
-- [[01-kafka-streams|Kafka Streams]] — a client library for building stream processing applications on top of Kafka
-- [[02-ktable|KTable]] — a changelog stream interpreted as a table; each key's latest value represents the current state
-- [[03-stream-table-join|Stream-Table Joins]] — enrich a stream of events by looking up the latest value for each key in a table
-- [[04-compacted-topics|Compacted Topics]] — topics with `cleanup.policy=compact` retain only the latest value per key, perfect for reference data
-- [[05-serdes|Serdes]] — serializer/deserializer pairs used by Kafka Streams for reading and writing records
-- [[06-stateful-processing|Stateful Processing]] — Kafka Streams maintains local state stores for KTables, enabling fast lookups without external databases
+- [Kafka Streams](../docs/11-kafka-streams.md) — a client library for building stream processing applications on top of Kafka
+- [KTable](../docs/11-kafka-streams.md) — a changelog stream interpreted as a table; each key's latest value represents the current state
+- Stream-Table Joins — enrich a stream of events by looking up the latest value for each key in a table
+- [Log Compaction](../docs/13-event-sourcing.md) — topics with `cleanup.policy=compact` retain only the latest value per key, perfect for reference data
+- [JSON Serialization](../docs/06-json-serialization.md) — serializer/deserializer pairs (Serdes) used by Kafka Streams for reading and writing records
+- Stateful Processing — Kafka Streams maintains local state stores for KTables, enabling fast lookups without external databases
 
 ## Architecture
 

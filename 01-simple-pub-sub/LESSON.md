@@ -14,13 +14,13 @@ flowchart LR
 
 ## Kafka Concepts Covered
 
-- [[01-topics|Topics]] — a named stream of records (`order-events`)
-- [[02-producers|Producers]] — applications that write messages to a topic
-- [[03-consumers|Consumers]] — applications that read messages from a topic
-- [[04-consumer-groups|Consumer Groups]] — consumers that share the work of reading a topic (`email-notification-group`)
-- [[05-message-keys|Message Keys]] — the `orderId` is used as the key, ensuring all events for the same order land on the same partition
-- [[06-json-serialization|JSON Serialization]] — Spring Kafka's `JsonSerializer`/`JsonDeserializer` for structured messages
-- [[07-offsets|Offsets]] — Kafka tracks where each consumer group has read up to
+- [Topics](../docs/01-topics.md) — a named stream of records (`order-events`)
+- [Producers](../docs/02-producers.md) — applications that write messages to a topic
+- [Consumers](../docs/03-consumers.md) — applications that read messages from a topic
+- [Consumer Groups](../docs/04-consumer-groups.md) — consumers that share the work of reading a topic (`email-notification-group`)
+- [Message Keys](../docs/05-message-keys.md) — the `orderId` is used as the key, ensuring all events for the same order land on the same partition
+- [JSON Serialization](../docs/06-json-serialization.md) — Spring Kafka's `JsonSerializer`/`JsonDeserializer` for structured messages
+- [Offsets](../docs/07-offsets.md) — Kafka tracks where each consumer group has read up to
 
 ## Architecture
 

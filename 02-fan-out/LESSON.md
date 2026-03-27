@@ -21,13 +21,13 @@ flowchart LR
 
 ## Kafka Concepts Covered
 
-- [[01-topics|Topics]] — a named stream of records (`user-signups`)
-- [[02-producers|Producers]] — the signup service publishes one event per signup
-- [[03-consumers|Consumers]] — three independent consumers each process the same events
-- [[04-consumer-groups|Consumer Groups]] — the key to fan-out: each service uses a **different** group ID, so Kafka delivers every message to every group
-- [[05-message-keys|Message Keys]] — `userId` as the key ensures ordering per user
-- [[06-json-serialization|JSON Serialization]] — Spring Kafka's `JsonSerializer`/`JsonDeserializer` for structured messages
-- [[07-offsets|Offsets]] — each consumer group tracks its own offset independently
+- [Topics](../docs/01-topics.md) — a named stream of records (`user-signups`)
+- [Producers](../docs/02-producers.md) — the signup service publishes one event per signup
+- [Consumers](../docs/03-consumers.md) — three independent consumers each process the same events
+- [Consumer Groups](../docs/04-consumer-groups.md) — the key to fan-out: each service uses a **different** group ID, so Kafka delivers every message to every group
+- [Message Keys](../docs/05-message-keys.md) — `userId` as the key ensures ordering per user
+- [JSON Serialization](../docs/06-json-serialization.md) — Spring Kafka's `JsonSerializer`/`JsonDeserializer` for structured messages
+- [Offsets](../docs/07-offsets.md) — each consumer group tracks its own offset independently
 
 ## Architecture
 

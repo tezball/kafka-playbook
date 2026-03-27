@@ -19,13 +19,13 @@ flowchart LR
 
 ## Kafka Concepts Covered
 
-- [[01-dead-letter-queues|Dead Letter Queues]] — a topic where messages that cannot be processed are sent after exhausting retries
-- [[02-error-handling|Error Handling]] — Spring Kafka's `DefaultErrorHandler` with configurable retry policies
-- [[03-retry-backoff|Retry with Backoff]] — `FixedBackOff(1000, 3)` retries a failed message 3 times with 1-second delays
-- [[04-dead-letter-publishing-recoverer|DeadLetterPublishingRecoverer]] — automatically publishes failed records to a `.DLQ` topic
-- [[05-manual-offset-management|Offset Management]] — failed messages are not committed until retries are exhausted and the DLQ receives them
-- [[06-consumer-groups|Consumer Groups]] — separate groups for the processor (`payment-processor-group`) and DLQ monitor (`dlq-monitor-group`)
-- [[07-topic-design|Topic Design]] — using separate topics for main flow (`payments`), and dead letters (`payments-dlq`)
+- [Dead Letter Queues](../docs/10-dead-letter-queues.md) — a topic where messages that cannot be processed are sent after exhausting retries
+- Error Handling — Spring Kafka's `DefaultErrorHandler` with configurable retry policies
+- Retry with Backoff — `FixedBackOff(1000, 3)` retries a failed message 3 times with 1-second delays
+- DeadLetterPublishingRecoverer — automatically publishes failed records to a `.DLQ` topic
+- [Offsets](../docs/07-offsets.md) — failed messages are not committed until retries are exhausted and the DLQ receives them
+- [Consumer Groups](../docs/04-consumer-groups.md) — separate groups for the processor (`payment-processor-group`) and DLQ monitor (`dlq-monitor-group`)
+- [Topics](../docs/01-topics.md) — using separate topics for main flow (`payments`), and dead letters (`payments-dlq`)
 
 ## Architecture
 
