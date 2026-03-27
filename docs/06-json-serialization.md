@@ -99,8 +99,9 @@ This is why production systems use a Schema Registry with Avro or Protobuf — i
 
 ## Hands-On
 
-- **[Lesson 01](../01-simple-pub-sub/LESSON.md)** uses JSON serialization with type mapping — browse messages in AKHQ to see JSON payloads and `__TypeId__` headers
-- The producer and consumer each define their own `OrderEvent` record and agree on a type alias — this works for self-contained apps, but in multi-team systems a Schema Registry or shared library is essential
+- [Lesson 01](../01-simple-pub-sub/LESSON.md) — `spring.json.type.mapping` with `orderEvent` alias; browse messages in AKHQ to see JSON payloads and `__TypeId__` headers
+- [Lesson 08](../08-stream-enrichment/LESSON.md) — `JsonSerde` in Kafka Streams with `use.type.headers=false`, demonstrating headerless JSON serialization for stream processing
+- [Lesson 12](../12-schema-evolution/LESSON.md) — Jackson configured with `FAIL_ON_UNKNOWN_PROPERTIES=false` for tolerant deserialization, allowing a single consumer to handle messages from v1 and v2 producers with different field sets
 
 ## Further Reading
 

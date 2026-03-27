@@ -99,8 +99,14 @@ public void handle(OrderEvent event) {
 
 ## Hands-On
 
-- **[Lesson 01](../01-simple-pub-sub/LESSON.md)** implements a consumer that logs email notifications — try stopping and restarting it to see offset-based resumption in action
-- Watch consumer lag in AKHQ while the consumer is stopped, then observe it catch up after restart
+- [Lesson 01](../01-simple-pub-sub/LESSON.md) — `@KafkaListener` consumer with auto-commit and `earliest` offset reset; stop and restart it to see offset-based resumption in action
+- [Lesson 02](../02-fan-out/LESSON.md) — 3 consumers with independent consumer groups on the same topic, each processing every message independently
+- [Lesson 03](../03-partitioned-processing/LESSON.md) — consumers filter messages by region using an environment variable, demonstrating partition-aware processing
+- [Lesson 04](../04-event-sourcing/LESSON.md) — consumer replays all events from the beginning to rebuild running account balances (event sourcing replay)
+- [Lesson 05](../05-cqrs/LESSON.md) — consumer builds an in-memory materialized view from command events and exposes it via a REST query API (CQRS read side)
+- [Lesson 06](../06-dead-letter-queue/LESSON.md) — consumer with `DefaultErrorHandler`, automatic retry, and DLQ routing for poison-pill messages
+- [Lesson 09](../09-exactly-once/LESSON.md) — consumer configured with `read_committed` isolation level so it only sees messages from committed transactions
+- [Lesson 12](../12-schema-evolution/LESSON.md) — tolerant consumer that handles multiple schema versions gracefully using Jackson's `FAIL_ON_UNKNOWN_PROPERTIES=false`
 
 ## Further Reading
 

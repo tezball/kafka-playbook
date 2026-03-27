@@ -123,8 +123,9 @@ For most applications, the overhead is acceptable. Use transactions only where c
 
 ## Hands-On
 
-- **[Lesson 09](../09-exactly-once/LESSON.md)** demonstrates atomic debit+credit transfers — a single transaction writes to both topics and commits the consumer offset, ensuring money is never created or lost
-- Try killing the producer mid-transaction and observe that the consumer (with `read_committed`) never sees partial writes
+- [Lesson 01](../01-simple-pub-sub/LESSON.md) — idempotent producer enabled by default (Kafka 3.x), visible in startup logs
+- [Lesson 09](../09-exactly-once/LESSON.md) — full transactional producer: `executeInTransaction()` atomically writes debits + credits; consumer uses `read_committed` to only see committed messages
+- [Lesson 13](../13-outbox-pattern/LESSON.md) — database transaction + outbox as an alternative to Kafka-native transactions
 
 ## Further Reading
 

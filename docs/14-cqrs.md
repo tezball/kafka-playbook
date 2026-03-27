@@ -99,8 +99,8 @@ Command → Validate → Publish event to Kafka (event sourcing: store events, n
 
 ## Hands-On
 
-- [Lesson 05](../05-cqrs/LESSON.md) demonstrates a product catalog where a write API publishes product events to Kafka, a consumer builds an in-memory materialized view, and a separate query API serves read requests from the view
-- Observe the brief delay between writing a product and seeing it in the query API — this is eventual consistency in action
+- [Lesson 05](../05-cqrs/LESSON.md) — write path sends `ProductCommand` (CREATE/UPDATE_PRICE/DELETE) to Kafka; read path materializes a `ConcurrentHashMap<ProductView>` from the event stream; separate REST endpoints for commands (8080) and queries (8081)
+- [Lesson 04](../04-event-sourcing/LESSON.md) — event sourcing as the write-side pattern; balance consumer is effectively a read model built from events
 
 ## Further Reading
 

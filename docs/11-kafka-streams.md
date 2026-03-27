@@ -180,8 +180,8 @@ Under the hood, `exactly_once_v2` wraps each processing step in a transaction �
 
 ## Hands-On
 
-- **[Lesson 08](../08-stream-enrichment/LESSON.md)** demonstrates stream-table joins — enriching order events with customer data from a KTable to produce a combined output stream
-- **[Lesson 10](../10-windowed-aggregation/LESSON.md)** demonstrates windowed aggregation — counting events in tumbling time windows and querying the results
+- [Lesson 08](../08-stream-enrichment/LESSON.md) — `KStream<clicks>` joined with `KTable<user-profiles>` to produce `enriched-clicks`; demonstrates stream-table join, compacted reference topic, and JsonSerde configuration
+- [Lesson 10](../10-windowed-aggregation/LESSON.md) — `KGroupedStream.windowedBy(TimeWindows.ofSizeWithNoGrace(1 min)).count()`; tumbling window aggregation with named state store, interactive query via REST endpoint, and windowed key output
 
 ## Further Reading
 

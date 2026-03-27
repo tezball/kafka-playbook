@@ -106,8 +106,8 @@ Step 1: Add new field          Step 2: Consumers read new    Step 3: Remove old 
 
 ## Hands-On
 
-- **[Lesson 12](../12-schema-evolution/LESSON.md)** demonstrates multi-version producers sending messages with different schema versions alongside a tolerant consumer that handles all versions gracefully
-- Experiment by adding and removing fields from the event class to see which changes break deserialization
+- [Lesson 01](../01-simple-pub-sub/LESSON.md) — producer and consumer use identical `OrderEvent` schemas, serving as the baseline for understanding what happens when schemas start to diverge
+- [Lesson 12](../12-schema-evolution/LESSON.md) — v1 and v2 producers send messages with different field sets to the same topic, while a tolerant consumer handles all versions gracefully using Jackson defaults; experiment by adding and removing fields to see which changes break deserialization
 
 ## Further Reading
 

@@ -155,8 +155,8 @@ In distributed mode, Connect stores connector configurations and offsets in inte
 
 ## Hands-On
 
-- **[Lesson 11](../11-change-data-capture/LESSON.md)** demonstrates Debezium CDC from PostgreSQL — insert and update rows in the database, then observe the corresponding change events appear in Kafka topics with the full Debezium envelope
-- Use the Connect REST API to inspect the connector status and AKHQ to browse CDC events
+- [Lesson 11](../11-change-data-capture/LESSON.md) — Debezium PostgreSQL source connector; connector registered via REST API after Kafka Connect starts; CDC events with before/after payloads flow to `dbserver1.public.products` topic; Spring Boot consumer parses the Debezium envelope
+- [Lesson 13](../13-outbox-pattern/LESSON.md) — alternative to CDC: polling-based outbox relay (lesson mentions Debezium as a production alternative)
 
 ## Further Reading
 

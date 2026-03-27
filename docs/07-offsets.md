@@ -99,9 +99,10 @@ This is powerful for:
 
 ## Hands-On
 
-- **[Lesson 01](../01-simple-pub-sub/LESSON.md)** uses auto-commit with `auto-offset-reset: earliest` — on first startup the consumer reads from the beginning; on restarts it resumes from the last committed offset
-- **Experiment:** Stop a consumer, let messages accumulate, then restart it. Watch lag spike in AKHQ and then drop as it catches up
-- [Lesson 09](../09-exactly-once/LESSON.md) (Exactly-Once Processing) demonstrates transactional offset commits
+- [Lesson 01](../01-simple-pub-sub/LESSON.md) — auto-commit with `earliest` offset reset; on first startup the consumer reads from the beginning, on restarts it resumes from the last committed offset
+- [Lesson 02](../02-fan-out/LESSON.md) — 3 consumer groups each tracking independent offsets on the same topic; inspect each group's offset progress in AKHQ to see how they advance independently
+- [Lesson 06](../06-dead-letter-queue/LESSON.md) — offsets are not committed until retries are exhausted or the message is published to the DLQ, preventing message loss during error handling
+- [Lesson 09](../09-exactly-once/LESSON.md) — transactional offset commits with `read_committed` isolation, ensuring offsets and output messages are committed atomically
 
 ## Further Reading
 

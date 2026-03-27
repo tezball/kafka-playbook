@@ -92,8 +92,13 @@ kafkaTemplate.send("order-events", event.orderId(), event)
 
 ## Hands-On
 
-- **[Lesson 01](../01-simple-pub-sub/LESSON.md)** implements an async producer with callbacks — watch the producer logs to see partition and offset confirmations
-- Try sending messages via the REST API and observe which partition each message lands on in AKHQ
+- [Lesson 01](../01-simple-pub-sub/LESSON.md) — async producer with `whenComplete()` callbacks that log partition and offset on each send; watch the producer logs to see confirmations
+- [Lesson 03](../03-partitioned-processing/LESSON.md) — producer uses region (NA/EU/APAC) as the message key to control partition routing
+- [Lesson 04](../04-event-sourcing/LESSON.md) — producer uses `accountId` as the key, ensuring all transactions for one account land on the same partition for ordered event streams
+- [Lesson 05](../05-cqrs/LESSON.md) — command producer emitting CREATE/UPDATE/DELETE actions that a consumer materializes into a read model
+- [Lesson 07](../07-saga-choreography/LESSON.md) — each saga service acts as both consumer and producer, chaining events across topics to drive the workflow forward
+- [Lesson 09](../09-exactly-once/LESSON.md) — idempotent + transactional producer that atomically writes to multiple topics within a Kafka transaction
+- [Lesson 12](../12-schema-evolution/LESSON.md) — two producers (v1 and v2) send messages with different schema versions to the same topic, demonstrating schema evolution from the producer side
 
 ## Further Reading
 

@@ -117,8 +117,8 @@ DLQ topics should be actively monitored — a message in the DLQ means something
 
 ## Hands-On
 
-- **[Lesson 06](../06-dead-letter-queue/LESSON.md)** demonstrates payment fraud detection with retry logic — messages flagged as fraudulent are retried, and after exhausting retries, they are routed to a DLQ for manual review
-- Inspect DLQ messages in AKHQ to see the exception headers and trace back to the original failure
+- [Lesson 06](../06-dead-letter-queue/LESSON.md) — `DefaultErrorHandler` with `FixedBackOff(1000, 3)` and `DeadLetterPublishingRecoverer`; payments > $500 trigger fraud exception, 3 retries, then DLQ; DLQ monitor logs failed messages with exception headers
+- [Lesson 07](../07-saga-choreography/LESSON.md) — saga failure topics (`payment-failed`, `inventory-failed`) serve a similar purpose to DLQs in choreography patterns
 
 ## Further Reading
 

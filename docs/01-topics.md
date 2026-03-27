@@ -68,8 +68,18 @@ TopicBuilder.name("order-events")
 
 ## Hands-On
 
-- **[Lesson 01](../01-simple-pub-sub/LESSON.md)** creates an `order-events` topic with 3 partitions — inspect it in AKHQ to see partition layout, message counts, and topic configuration
-- Use `kafka-topics.sh --describe` inside the Kafka container to view topic metadata from the CLI
+Every lesson creates and uses topics. Explore these to see how topic design varies by use case:
+
+- [Lesson 01](../01-simple-pub-sub/LESSON.md) — `order-events` topic with 3 partitions for basic pub/sub; inspect it in AKHQ to see partition layout and message counts
+- [Lesson 02](../02-fan-out/LESSON.md) — a single `user-signups` topic consumed by 3 independent consumer groups, demonstrating fan-out broadcast from one topic
+- [Lesson 03](../03-partitioned-processing/LESSON.md) — `regional-orders` topic using region-based partition keys (NA/EU/APAC) to route related messages together
+- [Lesson 04](../04-event-sourcing/LESSON.md) — `account-transactions` topic configured with `cleanup.policy=compact` for event sourcing, retaining the latest state per key indefinitely
+- [Lesson 06](../06-dead-letter-queue/LESSON.md) — three-topic design (`payments`, `payments-retry`, `payments-dlq`) showing how topics model processing stages and failure routing
+- [Lesson 07](../07-saga-choreography/LESSON.md) — 8 topics modeling saga steps (`checkout-requested`, `inventory-reserved`, `payment-completed`, etc.), demonstrating topic-per-event-type design
+- [Lesson 08](../08-stream-enrichment/LESSON.md) — compacted `user-profiles` KTable topic + `clicks` stream topic + `enriched-clicks` output, showing how different topic types serve different roles in Kafka Streams
+- [Lesson 09](../09-exactly-once/LESSON.md) — transactional writes across `account-debits` and `account-credits`, where atomicity spans multiple topics
+- [Lesson 10](../10-windowed-aggregation/LESSON.md) — `dashboard-orders` input topic + `category-counts` windowed output topic for real-time aggregation
+- [Lesson 11](../11-change-data-capture/LESSON.md) — auto-created CDC topic `dbserver1.public.products`, showing how Debezium connectors generate topics from database tables
 
 ## Further Reading
 

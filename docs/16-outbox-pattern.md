@@ -107,8 +107,9 @@ Using `aggregate_id` as the Kafka message key ensures all events for the same en
 
 ## Hands-On
 
-- [Lesson 13](../13-outbox-pattern/LESSON.md) demonstrates a polling-based outbox pattern using Spring Data JPA and Kafka — observe how the outbox table accumulates events and the relay publishes them in order
-- Experiment with stopping the relay, creating several orders, then restarting — watch the backlog drain
+- [Lesson 13](../13-outbox-pattern/LESSON.md) — `@Transactional` writes to `orders` + `outbox_events` tables atomically; `OutboxPoller` reads unsent rows every 2 seconds and publishes to Kafka; notification consumer receives reliably delivered events
+- [Lesson 11](../11-change-data-capture/LESSON.md) — Debezium CDC as the production-grade alternative to polling; WAL-based relay eliminates polling delay
+- [Lesson 09](../09-exactly-once/LESSON.md) — Kafka-native transactions as an alternative when no database is involved
 
 ## Further Reading
 

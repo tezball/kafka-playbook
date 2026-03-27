@@ -90,8 +90,13 @@ The key (`orderId`) determines the partition. All events for the same order are 
 
 ## Hands-On
 
-- **[Lesson 01](../01-simple-pub-sub/LESSON.md)** uses `orderId` as the message key — click individual messages in AKHQ to see the key, partition, and offset for each record
-- **Lesson 03 (Partitioned Processing)** explores key-based routing in depth with region-based partitioning
+- [Lesson 01](../01-simple-pub-sub/LESSON.md) — `orderId` as key for per-order partition affinity; click messages in AKHQ to see the key, partition, and offset for each record
+- [Lesson 03](../03-partitioned-processing/LESSON.md) — `region` as key (NA/EU/APAC) to route all regional orders to the same partition, enabling region-specific processing
+- [Lesson 04](../04-event-sourcing/LESSON.md) — `accountId` as key, ensuring all transactions for one account are ordered within the same partition for correct balance reconstruction
+- [Lesson 05](../05-cqrs/LESSON.md) — `productId` as key for command ordering per product, guaranteeing CREATE before UPDATE before DELETE
+- [Lesson 07](../07-saga-choreography/LESSON.md) — `orderId` as correlation key across all 8 saga topics, keeping all steps for one order co-partitioned
+- [Lesson 08](../08-stream-enrichment/LESSON.md) — `userId` as key enables stream-table join between clicks and user profiles (co-partitioning requirement)
+- [Lesson 09](../09-exactly-once/LESSON.md) — `transferId` as key for transfer requests, account IDs as keys for debit/credit topics to maintain per-account ordering
 
 ## Further Reading
 

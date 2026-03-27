@@ -74,9 +74,11 @@ Kafka brokers manage consumer groups through a **group coordinator**:
 
 ## Hands-On
 
-- **[Lesson 01](../01-simple-pub-sub/LESSON.md)** uses a single consumer group (`email-notification-group`) — view its offset progress and lag in AKHQ's Consumer Groups page
-- **Experiment:** stop a consumer, let messages accumulate, then restart it. Watch lag spike and recover to 0 — this is the group's offset tracking in action
-- **Lesson 02 (Fan-Out)** demonstrates multiple consumer groups on the same topic — each processes independently
+- [Lesson 01](../01-simple-pub-sub/LESSON.md) — single consumer group `email-notification-group`; view its offset progress and lag in AKHQ's Consumer Groups page
+- [Lesson 02](../02-fan-out/LESSON.md) — 3 independent groups (`email-welcome-group`, `analytics-tracking-group`, `audit-log-group`) on the same topic, demonstrating fan-out broadcast where each group processes every message
+- [Lesson 03](../03-partitioned-processing/LESSON.md) — 3 region-specific consumer groups, each consuming a subset of partitions based on region keys
+- [Lesson 06](../06-dead-letter-queue/LESSON.md) — separate consumer groups for the main payment processor and the DLQ monitor, each tracking offsets independently
+- [Lesson 07](../07-saga-choreography/LESSON.md) — each saga service (inventory, payment, shipping, notification) has its own consumer group, enabling independent scaling and offset tracking per service
 
 ## Further Reading
 

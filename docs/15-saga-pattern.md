@@ -106,8 +106,8 @@ To know whether a saga completed or failed, you need a way to track its progress
 
 ## Hands-On
 
-- [Lesson 07](../07-saga-choreography/LESSON.md) demonstrates an e-commerce checkout saga with inventory reservation, payment processing, and shipping — including compensation flows when payment fails
-- Observe how each service reacts to events on its input topic and publishes to the next, with no direct service-to-service calls
+- [Lesson 07](../07-saga-choreography/LESSON.md) — 4 services, 8 topics: checkout, inventory (90% success), payment (80% success), shipping; failed payments trigger compensation (inventory release, order cancellation); `orderId` used as correlation ID across all topics
+- [Lesson 06](../06-dead-letter-queue/LESSON.md) — DLQ as an alternative error-handling strategy when saga compensation is not needed
 
 ## Further Reading
 

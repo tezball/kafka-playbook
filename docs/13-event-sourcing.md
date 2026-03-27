@@ -96,8 +96,9 @@ A common approach is to publish snapshots to a compacted topic keyed by entity I
 
 ## Hands-On
 
-- [Lesson 04](../04-event-sourcing/LESSON.md) demonstrates a bank ledger that stores deposit and withdrawal events in a Kafka topic, then derives running balances by replaying the event stream
-- Experiment with replaying from offset 0 to rebuild state after modifying the consumer logic
+- [Lesson 04](../04-event-sourcing/LESSON.md) — bank account ledger: all debits/credits stored as immutable events in a compacted topic (`cleanup.policy=compact`); consumer replays from offset 0 to compute running balances
+- [Lesson 05](../05-cqrs/LESSON.md) — product commands stored as events; materializer replays to build current state
+- [Lesson 08](../08-stream-enrichment/LESSON.md) — `user-profiles` compacted topic used as a KTable for stream-table joins
 
 ## Further Reading
 
