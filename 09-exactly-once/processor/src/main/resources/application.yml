@@ -1,0 +1,36 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: transfer-processor
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      transaction-id-prefix: txn-
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        enable.idempotence: true
+        spring.json.type.mapping: >-
+          accountDebit:com.playbook.processor.model.AccountDebit,
+          accountCredit:com.playbook.processor.model.AccountCredit
+    consumer:
+      group-id: transfer-processor-group
+      auto-offset-reset: earliest
+      isolation-level: read_committed
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        enable.auto.commit: false
+        spring.json.trusted-packages: "com.playbook.*"
+        spring.json.type.mapping: >-
+          transferRequest:com.playbook.processor.model.TransferRequest,
+          accountDebit:com.playbook.processor.model.AccountDebit,
+          accountCredit:com.playbook.processor.model.AccountCredit
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

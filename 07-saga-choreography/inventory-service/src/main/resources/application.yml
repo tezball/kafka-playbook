@@ -1,0 +1,31 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: inventory-service
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.type.mapping: >-
+          inventoryReserved:com.playbook.inventory.model.InventoryReserved,
+          inventoryFailed:com.playbook.inventory.model.InventoryFailed
+    consumer:
+      group-id: inventory-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted-packages: "com.playbook.*"
+        spring.json.type.mapping: >-
+          checkoutRequested:com.playbook.inventory.model.CheckoutRequested,
+          paymentFailed:com.playbook.inventory.model.PaymentFailed
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
