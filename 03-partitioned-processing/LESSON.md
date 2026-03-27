@@ -118,6 +118,48 @@ docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh \
   --property print.key=true --property key.separator=" -> "
 ```
 
+## Testing
+
+The producer project includes end-to-end tests that verify partition routing and ordering using **Testcontainers** and **Awaitility**.
+
+### Running tests
+
+From within Docker:
+```bash
+docker compose exec producer sh -c "cd /app && mvn test"
+```
+
+Or locally (requires Docker running for Testcontainers):
+```bash
+cd producer && mvn test
+```
+
+### Approach
+
+Tests use **Testcontainers** to spin up a real Kafka broker (Confluent CP Kafka 7.6.1) in a Docker container. The `PartitionRoutingFlowTest` produces regional orders using the Spring `OrderProducerService`, then reads them back with a raw `KafkaConsumer` to inspect partition assignments and ordering.
+
+**BDD naming convention** — each test uses `@DisplayName` with Given/When/Then:
+```java
+@Test
+@DisplayName("Given orders are published with region keys NA, EU, APAC, " +
+        "when the partitioner routes them, " +
+        "then all orders with the same region key land on the same partition")
+void givenRegionKeys_whenPartitionerRoutes_thenSameRegionSamePartition() {
+```
+
+### Test file
+
+| Project | Test class | Scenarios |
+|---------|-----------|-----------|
+| producer | `PartitionRoutingFlowTest` | Verifies all orders with the same region key land on the same partition; verifies NA orders arrive in production order |
+
+### Best practices for Kafka testing
+
+- **Async assertions with Awaitility** — Kafka consumers are asynchronous, so tests use polling loops with timeouts instead of `Thread.sleep()`
+- **Testcontainers vs EmbeddedKafka** — Testcontainers runs a real Kafka broker with real partitioning behavior, which is critical for testing partition routing
+- **Verify partition assignment** — the test groups consumed records by key and asserts each key maps to exactly one partition, confirming Kafka's consistent hashing
+- **Verify ordering within a partition** — messages with the same key go to the same partition, and within a partition Kafka guarantees FIFO ordering. The test confirms this by producing five sequential NA orders and checking they arrive in the same order
+
 ## Key Takeaways
 
 1. **Partition key choice matters** — using `region` as the key means all orders for the same region go to the same partition, guaranteeing ordering within a region. If we used `orderId` instead, orders would be spread across all partitions randomly.

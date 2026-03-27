@@ -112,6 +112,35 @@ docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh \
 4. **Windowed keys** — the output of a windowed aggregation includes the window boundaries in the key, which is important for downstream consumers to interpret correctly.
 5. **Real-time dashboards** — combining Kafka Streams state stores with a REST endpoint gives you a live-queryable dashboard without any external database.
 
+## Testing
+
+This lesson includes end-to-end BDD tests using **Testcontainers** with a real Kafka broker. The tests are in the `aggregator` project.
+
+### Running the tests
+
+```bash
+cd aggregator && mvn test
+```
+
+### Test scenarios
+
+The test class `WindowedAggregationTest` verifies two scenarios using `@SpringBootTest` + `@Testcontainers` + `KafkaContainer`:
+
+1. **Given orders arrive within the same 1-minute window, when aggregated by category, then the count reflects the total orders per category in that window** -- Produces 5 orders (3 Electronics, 2 Clothing) with timestamps within the same minute, then consumes from the `category-counts` topic and asserts the correct counts appear.
+
+2. **Given orders span two different 1-minute windows, when aggregated, then each window has its own independent count** -- Produces orders with timestamps in two distinct minute windows and verifies that the aggregator emits separate counts per window.
+
+The tests use `@DynamicPropertySource` to inject the Testcontainers Kafka bootstrap servers into the Spring context, and **Awaitility** to wait for the Kafka Streams topology to process and emit results.
+
+### Dependencies added
+
+- `spring-boot-starter-test` -- JUnit 5, AssertJ, Mockito
+- `spring-kafka-test` -- Kafka testing utilities
+- `kafka-streams-test-utils` -- Kafka Streams testing support
+- `testcontainers:kafka` -- Kafka container for integration tests
+- `testcontainers:junit-jupiter` -- JUnit 5 integration for Testcontainers
+- `awaitility` -- fluent async assertions
+
 ## Teardown
 
 ```bash

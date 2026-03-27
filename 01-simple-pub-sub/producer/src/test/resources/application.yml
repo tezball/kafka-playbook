@@ -1,0 +1,11 @@
+spring:
+  task:
+    scheduling:
+      pool:
+        size: 0
+  kafka:
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.type.mapping: orderEvent:com.playbook.producer.model.OrderEvent

@@ -1,0 +1,16 @@
+server:
+  port: 0
+
+spring:
+  application:
+    name: versioned-consumer-test
+  kafka:
+    consumer:
+      group-id: test-versioned-consumer-group
+      auto-offset-reset: earliest
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

@@ -156,6 +156,37 @@ docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh \
 4. **Simplicity** — this polling-based outbox avoids the operational complexity of Debezium/Kafka Connect (covered in Lesson 11) while providing the same reliability guarantee.
 5. **Trade-off** — the polling interval (2 seconds here) adds latency compared to direct Kafka publishing or CDC-based approaches. For most use cases, this is acceptable.
 
+## Testing
+
+This lesson includes end-to-end BDD tests using **Testcontainers** with real Kafka and PostgreSQL containers. The tests are in the `order-service` project.
+
+### Running the tests
+
+```bash
+cd order-service && mvn test
+```
+
+### Test scenarios
+
+The test class `OutboxFlowTest` verifies three scenarios using `@SpringBootTest` + `@Testcontainers` + `KafkaContainer` + `PostgreSQLContainer`:
+
+1. **Given an order is created via the order service, when the transaction commits to both orders and outbox_events tables, then the outbox row is marked as unsent** -- Creates an order through `OrderService.createOrder()` and verifies that both the `orders` table and `outbox_events` table contain the expected data, with the outbox event's `sent` flag set to `false`.
+
+2. **Given an unsent outbox event exists, when the outbox poller runs, then the event is published to Kafka and marked as sent** -- Creates an order (which writes an unsent outbox row), then manually triggers `OutboxPoller.pollAndPublish()`, and verifies the outbox row is updated to `sent = true`.
+
+3. **Given the full e2e flow, when an order is created, then a notification event arrives on the order-events Kafka topic** -- Creates an order, triggers the poller, then consumes from the `order-events` Kafka topic using a test consumer and verifies the `OrderCreatedEvent` payload matches the original order.
+
+The tests use `@DynamicPropertySource` to inject both the Testcontainers Kafka bootstrap servers and PostgreSQL JDBC URL into the Spring context. The PostgreSQL container is initialized with `init-db.sql` to create the `orders` and `outbox_events` tables.
+
+### Dependencies added
+
+- `spring-boot-starter-test` -- JUnit 5, AssertJ, Mockito
+- `spring-kafka-test` -- Kafka testing utilities
+- `testcontainers:kafka` -- Kafka container for integration tests
+- `testcontainers:postgresql` -- PostgreSQL container for integration tests
+- `testcontainers:junit-jupiter` -- JUnit 5 integration for Testcontainers
+- `awaitility` -- fluent async assertions
+
 ## Teardown
 
 ```bash

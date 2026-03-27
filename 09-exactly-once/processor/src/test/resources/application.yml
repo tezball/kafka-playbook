@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: transfer-processor-test
+  kafka:
+    producer:
+      # Use a unique transaction-id-prefix per test run to avoid
+      # conflicts with stale transactional state from prior runs.
+      transaction-id-prefix: txn-test-

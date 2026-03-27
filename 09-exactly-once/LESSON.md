@@ -135,6 +135,30 @@ docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh \
 4. **Transactional IDs fence zombies** — if a processor crashes and restarts, Kafka uses the transactional ID to abort any pending transaction from the old instance before the new one begins.
 5. **Cost of exactly-once** — transactions add latency (the broker must coordinate commits) and reduce throughput. Use EOS where correctness matters (financial transfers, inventory, billing). For analytics or logging, at-least-once with idempotent consumers is usually sufficient.
 
+## Testing
+
+### Running the integration test
+
+The processor project includes an end-to-end test that verifies the transactional consumer-producer pattern. The test uses **Testcontainers** to start a real Kafka broker in Docker, publishes a `TransferRequest`, and asserts that both the debit and credit events appear on their respective topics.
+
+```bash
+cd processor
+mvn test
+```
+
+The test class `ExactlyOnceFlowTest` covers:
+
+| Test | What it verifies |
+|------|-----------------|
+| `givenTransferRequest_whenProcessedTransactionally_thenDebitAndCreditAppear` | A transfer request produces both a debit on `account-debits` and a credit on `account-credits` with the correct account IDs and amounts |
+| `givenTransferRequest_whenTransactionCommits_thenReadCommittedConsumerSeesBoth` | A consumer configured with `isolation.level=read_committed` sees the debit and credit only after the transaction commits — no dirty reads |
+
+### What the transactional test proves
+
+The second test (`readCommittedConsumerSeesBoth`) is significant because it uses a `read_committed` consumer. In Kafka, a `read_uncommitted` consumer (the default) can see messages before the transaction commits. By configuring `isolation.level=read_committed`, the test consumer will only return records from committed transactions. If the processor's transaction were to abort, the test consumer would never see those records.
+
+This mirrors the production audit consumer, which also uses `read_committed` isolation to guarantee it only processes fully committed transfers.
+
 ## Teardown
 
 ```bash

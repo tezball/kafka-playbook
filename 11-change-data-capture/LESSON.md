@@ -128,6 +128,62 @@ docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh \
 4. **Logical decoding** — Postgres must be configured with `wal_level=logical` for Debezium to work. This is set via the `command` override in `docker-compose.yml`.
 5. **Kafka Connect** — connectors are registered via REST API after Kafka Connect is healthy. They run inside the Connect worker — no custom code needed to bridge Postgres and Kafka.
 
+## Testing
+
+This lesson does **not** include automated tests. CDC testing requires running both a **Debezium/Kafka Connect** container and a **PostgreSQL** container with `wal_level=logical`, which adds significant complexity beyond what the other lessons' Testcontainers setups require.
+
+### Why CDC is harder to test
+
+1. **Debezium connector registration** -- Debezium runs inside a Kafka Connect worker. The connector must be registered via REST API after the Connect worker is healthy, which adds startup orchestration.
+2. **WAL-level configuration** -- The PostgreSQL container must be started with `wal_level=logical` and the `decoderbufs` or `pgoutput` plugin available.
+3. **Connector startup delay** -- After registration, the Debezium connector takes several seconds to begin tailing the WAL, making tests timing-sensitive.
+
+### Sketch of the approach
+
+If you wanted to add Testcontainers-based tests for this lesson, the approach would be:
+
+```java
+@Testcontainers
+@SpringBootTest
+class CdcFlowTest {
+
+    @Container
+    static final KafkaContainer kafka = new KafkaContainer("apache/kafka:3.9.0");
+
+    @Container
+    static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine")
+            .withCommand("postgres", "-c", "wal_level=logical")
+            .withDatabaseName("productdb")
+            .withInitScript("init-db.sql");
+
+    @Container
+    static final GenericContainer<?> connect = new GenericContainer<>("debezium/connect:2.5")
+            .withExposedPorts(8083)
+            .withEnv("BOOTSTRAP_SERVERS", kafka.getBootstrapServers())
+            .dependsOn(kafka, postgres);
+
+    @DynamicPropertySource
+    static void props(DynamicPropertyRegistry registry) {
+        registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
+    }
+
+    @Test
+    void givenProductInserted_whenDebeziumCapturesChange_thenCdcEventOnTopic() {
+        // 1. Register the Debezium connector via REST to connect:8083
+        // 2. Wait for connector status == RUNNING
+        // 3. INSERT a product row into postgres
+        // 4. Consume from dbserver1.public.products topic
+        // 5. Assert the CDC envelope contains op=c and the after payload
+    }
+}
+```
+
+### Further reading
+
+- [Debezium Testing Guide](https://debezium.io/documentation/reference/stable/development/engine.html)
+- [Testcontainers Kafka Module](https://java.testcontainers.org/modules/kafka/)
+- [Testcontainers PostgreSQL Module](https://java.testcontainers.org/modules/databases/postgres/)
+
 ## Teardown
 
 ```bash

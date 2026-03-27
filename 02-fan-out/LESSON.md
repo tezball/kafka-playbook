@@ -136,6 +136,48 @@ docker compose exec kafka /opt/kafka/bin/kafka-consumer-groups.sh \
   --bootstrap-server localhost:9092 --describe --all-groups
 ```
 
+## Testing
+
+The producer project includes end-to-end tests that verify the fan-out pattern using **Testcontainers** and **Awaitility**.
+
+### Running tests
+
+From within Docker:
+```bash
+docker compose exec producer sh -c "cd /app && mvn test"
+```
+
+Or locally (requires Docker running for Testcontainers):
+```bash
+cd producer && mvn test
+```
+
+### Approach
+
+Tests use **Testcontainers** to spin up a real Kafka broker (Confluent CP Kafka 7.6.1) in a Docker container. The `FanOutFlowTest` is self-contained: it produces signup events using the Spring `SignupProducerService`, then creates three independent `KafkaConsumer` instances with different group IDs to verify each group receives every message.
+
+**BDD naming convention** — each test uses `@DisplayName` with Given/When/Then:
+```java
+@Test
+@DisplayName("Given a user signup event is published, " +
+        "when three consumer groups subscribe to the same topic, " +
+        "then each group independently receives the event")
+void givenSignupPublished_whenThreeGroupsSubscribe_thenEachReceivesEvent() {
+```
+
+### Test file
+
+| Project | Test class | Scenarios |
+|---------|-----------|-----------|
+| producer | `FanOutFlowTest` | Verifies three consumer groups each independently receive the same event; verifies two events are received by all groups with independent offset tracking |
+
+### Best practices for Kafka testing
+
+- **Async assertions with Awaitility** — Kafka consumers are asynchronous, so tests use polling loops with timeouts instead of `Thread.sleep()`
+- **Testcontainers vs EmbeddedKafka** — Testcontainers runs a real Kafka broker, catching serialization and configuration issues that EmbeddedKafka might miss
+- **Independent consumer groups** — the test creates three separate consumer groups to simulate the fan-out pattern, verifying that Kafka delivers every message to every group
+- **Test serialization separately** — in production, consider unit tests for your serializer/deserializer configurations independent of the full Kafka flow
+
 ## Key Takeaways
 
 1. **Fan-out via consumer groups** — each service uses a different `group.id`, so Kafka delivers every message to every group independently. One topic, N consumers, each gets everything.

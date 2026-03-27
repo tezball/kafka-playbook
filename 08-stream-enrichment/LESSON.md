@@ -102,6 +102,58 @@ docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh \
 4. **Key alignment** — The join works because both the click stream and the profile table use `userId` as the message key. Key alignment is essential for stream-table joins.
 5. **Ordering guarantees** — Profiles must be seeded before clicks arrive, otherwise clicks for unknown users will be dropped by the inner join. In production, you might use a left join with a fallback.
 
+## Testing
+
+This lesson does not include automated tests, but Kafka Streams topologies are well-suited to unit testing with `TopologyTestDriver` from the `kafka-streams-test-utils` library.
+
+### Recommended approach: TopologyTestDriver
+
+`TopologyTestDriver` lets you test a Kafka Streams topology **without a running Kafka broker**. It is fast, deterministic, and ideal for unit testing stream processing logic.
+
+```java
+// Example sketch (not runnable as-is -- adapt to your topology):
+@Test
+void givenClickAndProfile_whenJoined_thenEnrichedClickProduced() {
+    StreamsBuilder builder = new StreamsBuilder();
+    // ... build your topology on the builder ...
+
+    try (TopologyTestDriver driver = new TopologyTestDriver(builder.build(), streamsConfig)) {
+        TestInputTopic<String, ClickEvent> clickTopic = driver.createInputTopic(
+                "clicks", new StringSerializer(), new JsonSerializer<>());
+        TestInputTopic<String, UserProfile> profileTopic = driver.createInputTopic(
+                "user-profiles", new StringSerializer(), new JsonSerializer<>());
+        TestOutputTopic<String, EnrichedClick> outputTopic = driver.createOutputTopic(
+                "enriched-clicks", new StringDeserializer(), new JsonDeserializer<>(EnrichedClick.class));
+
+        // Seed the profile KTable
+        profileTopic.pipeInput("USR-1001", new UserProfile("USR-1001", "Alice", "PRO"));
+
+        // Send a click event
+        clickTopic.pipeInput("USR-1001", new ClickEvent("USR-1001", "/products", "view"));
+
+        // Verify the enriched output
+        EnrichedClick result = outputTopic.readValue();
+        assertEquals("Alice", result.userName());
+        assertEquals("PRO", result.userTier());
+    }
+}
+```
+
+### Maven dependency
+
+```xml
+<dependency>
+    <groupId>org.apache.kafka</groupId>
+    <artifactId>kafka-streams-test-utils</artifactId>
+    <scope>test</scope>
+</dependency>
+```
+
+### Further reading
+
+- [Kafka Streams Testing Documentation](https://kafka.apache.org/documentation/streams/developer-guide/testing.html)
+- [TopologyTestDriver Javadoc](https://kafka.apache.org/37/javadoc/org/apache/kafka/streams/TopologyTestDriver.html)
+
 ## Teardown
 
 ```bash

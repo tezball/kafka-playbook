@@ -133,6 +133,30 @@ docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh \
 4. **Independent Scaling** — you can scale the read path (many query-service replicas) independently of the write path. Read-heavy workloads don't impact writes, and vice versa.
 5. **Event Replay** — because commands are persisted in Kafka, you can spin up a new query service instance and it will rebuild the full catalog by replaying from the beginning of the topic.
 
+## Testing
+
+The query-service project includes end-to-end tests using Testcontainers and Awaitility. Tests spin up a real Kafka broker in Docker and verify the CQRS materialization flow with BDD-style naming.
+
+### Running the tests
+
+```bash
+cd query-service
+mvn test
+```
+
+### Test scenarios
+
+| Test | Description |
+|------|-------------|
+| **CREATE command** | Publishes a CREATE command, verifies the product appears in the materialized view with correct fields |
+| **UPDATE_PRICE command** | Creates a product then updates its price, verifies the price changes while name and category are preserved |
+| **DELETE command** | Creates a product then deletes it, verifies the product is removed from the materialized view |
+
+### Dependencies
+
+- Docker must be running (Testcontainers launches a `confluentinc/cp-kafka:7.6.1` container)
+- No external Kafka broker needed — the test is fully self-contained
+
 ## Teardown
 
 ```bash

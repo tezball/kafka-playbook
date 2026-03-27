@@ -2,6 +2,11 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
+SKIP_TESTS=false
+if [[ "${1:-}" == "--skip-tests" ]]; then
+  SKIP_TESTS=true
+fi
+
 # Detect OS for browser open command
 open_browser() {
   local url="$1"
@@ -43,6 +48,33 @@ echo "=========================================="
 echo "  Kafka Playbook — 03 Partitioned Processing"
 echo "=========================================="
 echo ""
+
+if [ "$SKIP_TESTS" = false ]; then
+  # Run tests before starting services
+  echo ">>> Running tests (requires Docker for Testcontainers)..."
+  run_tests() {
+    local service_dir="$1"
+    local service_name="$2"
+    echo "    Testing ${service_name}..."
+    docker run --rm \
+      -v "${PWD}/${service_dir}":/app \
+      -v /var/run/docker.sock:/var/run/docker.sock \
+      -w /app \
+      --network host \
+      maven:3.9-eclipse-temurin-21 \
+      mvn test -B -q 2>&1 | tail -5
+    if [ ${PIPESTATUS[0]} -ne 0 ]; then
+      echo "ERROR: Tests failed for ${service_name}"
+      exit 1
+    fi
+    echo "    ✓ ${service_name} tests passed"
+  }
+
+  run_tests "producer" "producer"
+  echo ""
+else
+  echo ">>> Skipping tests (--skip-tests flag)"
+fi
 
 # Stop and remove containers, volumes, and networks from a previous run
 echo ">>> Tearing down previous run..."

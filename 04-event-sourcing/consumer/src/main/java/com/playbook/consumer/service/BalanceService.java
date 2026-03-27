@@ -20,6 +20,14 @@ public class BalanceService {
 
     private static final NumberFormat CURRENCY_FORMAT = NumberFormat.getCurrencyInstance(Locale.US);
 
+    public BigDecimal getBalance(String accountId) {
+        return balances.getOrDefault(accountId, BigDecimal.ZERO);
+    }
+
+    public ConcurrentHashMap<String, BigDecimal> getBalances() {
+        return balances;
+    }
+
     @KafkaListener(topics = "account-transactions", groupId = "balance-group")
     public void handleTransactionEvent(TransactionEvent event) {
         BigDecimal newBalance = balances.compute(event.accountId(), (accountId, currentBalance) -> {

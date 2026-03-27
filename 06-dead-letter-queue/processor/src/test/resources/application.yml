@@ -1,0 +1,16 @@
+server:
+  port: 0
+
+spring:
+  application:
+    name: payment-processor-test
+  kafka:
+    consumer:
+      group-id: payment-processor-group
+      auto-offset-reset: earliest
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

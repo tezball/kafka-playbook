@@ -145,6 +145,32 @@ docker compose exec kafka /opt/kafka/bin/kafka-topics.sh \
 4. **Separate monitoring** — the `dlq-monitor-group` consumes from `payments-dlq` independently, allowing alerting, dashboards, or automated reprocessing pipelines.
 5. **Topic design** — using dedicated topics (`payments`, `payments-dlq`) with appropriate partition counts (3 for throughput on main topic, 1 for the low-volume DLQ) is a common production pattern.
 
+## Testing
+
+The processor project includes end-to-end tests using Testcontainers and Awaitility. Tests spin up a real Kafka broker in Docker and verify the DLQ flow with BDD-style naming.
+
+### Running the tests
+
+```bash
+cd processor
+mvn test
+```
+
+### Test scenarios
+
+| Test | Description |
+|------|-------------|
+| **Valid payment** | Sends a payment under $500, waits 8 seconds, verifies nothing appears in the `payments.DLT` topic |
+| **Fraudulent payment to DLQ** | Sends a payment over $500, verifies it lands in the `payments.DLT` topic after retries are exhausted |
+| **Mixed batch** | Sends a mix of valid and fraudulent payments, verifies only the fraudulent ones end up in the DLQ |
+
+The DLQ topic name is `payments.DLT` (Spring Kafka's `DeadLetterPublishingRecoverer` default naming convention appends `.DLT` to the original topic name).
+
+### Dependencies
+
+- Docker must be running (Testcontainers launches a `confluentinc/cp-kafka:7.6.1` container)
+- No external Kafka broker needed — the test is fully self-contained
+
 ## Teardown
 
 ```bash

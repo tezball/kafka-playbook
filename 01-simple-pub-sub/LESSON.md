@@ -111,6 +111,51 @@ docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh \
   --bootstrap-server localhost:9092 --topic order-events --from-beginning
 ```
 
+## Testing
+
+Both the producer and consumer projects include end-to-end tests using **Testcontainers** and **Awaitility**.
+
+### Running tests
+
+From within Docker:
+```bash
+docker compose exec producer sh -c "cd /app && mvn test"
+docker compose exec consumer sh -c "cd /app && mvn test"
+```
+
+Or locally (requires Docker running for Testcontainers):
+```bash
+cd producer && mvn test
+cd consumer && mvn test
+```
+
+### Approach
+
+Tests use **Testcontainers** to spin up a real Kafka broker (Confluent CP Kafka 7.6.1) in a Docker container. This provides a more realistic test environment than Spring's `EmbeddedKafka`, because it runs the actual Kafka binary with real networking.
+
+**BDD naming convention** — each test uses `@DisplayName` with Given/When/Then to describe the scenario:
+```java
+@Test
+@DisplayName("Given an order event is published to the order-events topic, " +
+        "when the email notification consumer processes the message, " +
+        "then the order details are logged as a formatted email notification")
+void givenOrderEventPublished_whenConsumerProcesses_thenEmailNotificationLogged() {
+```
+
+### Test files
+
+| Project | Test class | Scenarios |
+|---------|-----------|-----------|
+| consumer | `OrderNotificationFlowTest` | Verifies the consumer receives and processes order events; verifies ordering for multiple rapid publishes |
+| producer | `OrderProducerFlowTest` | Verifies the producer sends messages with correct key and JSON payload by reading them back with a raw `KafkaConsumer` |
+
+### Best practices for Kafka testing
+
+- **Async assertions with Awaitility** — Kafka consumers are asynchronous, so tests use `await().atMost(...)` instead of `Thread.sleep()` to wait for messages to be processed
+- **Testcontainers vs EmbeddedKafka** — Testcontainers runs a real Kafka broker, catching serialization and configuration issues that EmbeddedKafka might miss. The tradeoff is slightly slower startup (~5s)
+- **Test serialization separately** — in production, consider unit tests for your serializer/deserializer configurations independent of the full Kafka flow
+- **Use `@SpyBean`** — the consumer test uses `@SpyBean` on the service to capture method invocations without changing the service code
+
 ## Key Takeaways
 
 1. **Decoupling** — the producer doesn't know or care who consumes its events. You could add a second consumer (analytics, audit) without changing the producer.

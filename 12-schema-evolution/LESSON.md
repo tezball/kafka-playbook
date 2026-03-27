@@ -214,6 +214,36 @@ public class OrderEventFull {
 5. **Version detection** — when you need version-specific logic, detect the version from the data itself (presence/absence of fields) rather than relying on external metadata.
 6. **Multiple producers, one topic** — Kafka topics are schema-agnostic. Different producer versions can write to the same topic simultaneously, which is essential for rolling deployments.
 
+## Testing
+
+This lesson includes end-to-end BDD tests using **Testcontainers** with a real Kafka broker. The tests are in the `consumer` project.
+
+### Running the tests
+
+```bash
+cd consumer && mvn test
+```
+
+### Test scenarios
+
+The test class `SchemaEvolutionFlowTest` verifies three scenarios using `@SpringBootTest` + `@Testcontainers` + `KafkaContainer`:
+
+1. **Given a v1 event (3 fields) is published, when the tolerant consumer deserializes it, then the extra fields (shippingAddress, loyaltyTier) are null** -- Produces a JSON map with only the v1 fields to the `versioned-events` topic and verifies that the consumer receives it with `shippingAddress` and `loyaltyTier` set to `null`.
+
+2. **Given a v2 event (5 fields) is published, when the tolerant consumer deserializes it, then all fields including shippingAddress and loyaltyTier are populated** -- Produces a JSON map with all v2 fields and verifies the consumer populates every field correctly.
+
+3. **Given a mix of v1 and v2 events are published, when the consumer processes them, then both versions are handled without errors** -- Produces an interleaved sequence of v1 and v2 events and verifies the consumer processes all of them, with correct version detection for each.
+
+The tests use `@SpyBean` on `VersionedEventConsumer` to capture method arguments via Mockito, and **Awaitility** to wait for asynchronous Kafka message delivery.
+
+### Dependencies added
+
+- `spring-boot-starter-test` -- JUnit 5, AssertJ, Mockito
+- `spring-kafka-test` -- Kafka testing utilities
+- `testcontainers:kafka` -- Kafka container for integration tests
+- `testcontainers:junit-jupiter` -- JUnit 5 integration for Testcontainers
+- `awaitility` -- fluent async assertions
+
 ## Teardown
 
 ```bash

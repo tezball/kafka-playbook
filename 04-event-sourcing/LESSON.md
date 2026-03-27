@@ -157,6 +157,30 @@ docker compose exec kafka /opt/kafka/bin/kafka-topics.sh \
 3. **Replay capability** — any consumer can rebuild its state by reading from the beginning. This makes it easy to add new consumers, fix bugs in processing logic, or migrate to a new data store.
 4. **Key-based partitioning** — using `accountId` as the message key ensures all transactions for one account are on the same partition, preserving order and enabling correct balance computation.
 
+## Testing
+
+The consumer project includes end-to-end tests using Testcontainers and Awaitility. Tests spin up a real Kafka broker in Docker and verify the event sourcing flow with BDD-style naming.
+
+### Running the tests
+
+```bash
+cd consumer
+mvn test
+```
+
+### Test scenarios
+
+| Test | Description |
+|------|-------------|
+| **Credit/Debit balance** | Sends CREDIT and DEBIT events for a single account, verifies the running balance equals credits minus debits |
+| **Multi-account isolation** | Interleaves events for two accounts, verifies each account maintains an independent correct balance |
+| **Restart idempotency** | Sends events in two phases, verifies that subsequent events are applied correctly without double-counting |
+
+### Dependencies
+
+- Docker must be running (Testcontainers launches a `confluentinc/cp-kafka:7.6.1` container)
+- No external Kafka broker needed — the test is fully self-contained
+
 ## Teardown
 
 ```bash

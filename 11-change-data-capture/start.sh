@@ -2,6 +2,11 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
+SKIP_TESTS=false
+if [[ "${1:-}" == "--skip-tests" ]]; then
+  SKIP_TESTS=true
+fi
+
 # Detect OS for browser open command
 open_browser() {
   local url="$1"
@@ -43,6 +48,14 @@ echo "=========================================="
 echo "  Kafka Playbook — 11 Change Data Capture"
 echo "=========================================="
 echo ""
+
+if [ "$SKIP_TESTS" = false ]; then
+  # Tests: see LESSON.md for testing guidance (TopologyTestDriver / CDC testing)
+  echo ">>> Skipping tests (see LESSON.md for testing approach)"
+  echo ""
+else
+  echo ">>> Skipping tests (--skip-tests flag)"
+fi
 
 # Stop and remove containers, volumes, and networks from a previous run
 echo ">>> Tearing down previous run..."

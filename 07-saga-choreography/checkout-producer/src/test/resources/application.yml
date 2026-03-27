@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: checkout-producer-test
+  # Disable scheduled tasks during tests so the SampleDataGenerator
+  # does not produce unexpected messages.
+  task:
+    scheduling:
+      pool:
+        size: 0
